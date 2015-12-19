@@ -1,0 +1,1 @@
+Solved challenges from http://daily-javascript.com/challenges/
