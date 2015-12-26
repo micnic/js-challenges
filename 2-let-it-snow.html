@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Let It Snow</title>
+		<script>
+			(function () {
+
+				var canvas = null,
+					context = null,
+					flakes = [],
+					request = null,
+					timer = null,
+					tau = Math.PI * 2;
+
+				function bentMoveFlake(flake) {
+
+					var t = flake.time,
+						p0 = flake.p0,
+						p1 = flake.p1,
+						p2 = flake.p2,
+						p3 = flake.p3,
+						offset = 1 - t,
+						a0 = offset * offset * offset,
+						a1 = offset * offset * 3 * t,
+						a2 = offset * 3 * t * t,
+						a3 = t * t * t;
+
+					return {
+						x: a0 * p0.x + a1 * p1.x + a2 * p2.x + a3 * p3.x,
+						y: a0 * p0.y + a1 * p1.y + a2 * p2.y + a3 * p3.y
+					};
+				}
+
+				function randomFlakeSize() {
+
+					var unit = Math.min(canvas.width, canvas.height) / 400;
+
+					return Math.round(unit * ((Math.random() * 2) + 1));
+				}
+
+				function drawSnow() {
+
+					var flake = null,
+						pos = null,
+						index = 0,
+						length = flakes.length;
+
+					context.fillStyle = '#80a0c0';
+					context.fillRect(0, 0, canvas.width, canvas.height);
+
+					context.fillStyle = '#f0f0f0';
+					context.beginPath();
+
+					while (index < length) {
+
+						flake = flakes[index];
+
+						if (flakes[index].time < 1) {
+							pos = bentMoveFlake(flake);
+							context.moveTo(pos.x, pos.y);
+							context.arc(pos.x, pos.y, flake.size, 0, tau, true);
+							flake.time += 0.001;
+						} else {
+							flakes.splice(index, 1);
+							index--;
+							length--;
+						}
+
+						index++;
+					}
+
+					context.closePath();
+					context.fill();
+
+					request = window.requestAnimationFrame(drawSnow);
+				}
+
+				function startSnow() {
+
+					canvas = document.getElementById('canvas');
+					context = canvas.getContext('2d');
+
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+
+					clearInterval(timer);
+
+					flakes = [];
+
+					timer = setInterval(function () {
+
+						var size = randomFlakeSize();
+
+						var flake = {
+							size: size,
+							p0: {
+								x: Math.round(Math.random() * canvas.width),
+								y: - size
+							},
+							p1: {
+								x: Math.round(Math.random() * canvas.width),
+								y: Math.round(canvas.height / 3)
+							},
+							p2: {
+								x: Math.round(Math.random() * canvas.width),
+								y: Math.round((2 * canvas.height) / 3)
+							},
+							p3: {
+								x: Math.round(Math.random() * canvas.width),
+								y: canvas.height + size
+							},
+							time: 0
+						};
+
+						flakes.push(flake);
+					}, 200);
+
+					window.cancelAnimationFrame(request);
+
+					drawSnow();
+				}
+
+				document.addEventListener('DOMContentLoaded', startSnow);
+				window.addEventListener('resize', startSnow);
+			})();
+		</script>
+		<style>
+			html, body {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+			}
+
+			#canvas {
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+	</body>
+</html>
